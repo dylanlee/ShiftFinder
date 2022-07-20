@@ -99,191 +99,20 @@ def stbsteps(points,StabCrit):
     return numActLevels, seaR, ActLevels
     
     
-    
-#Rev 3 filter definition. Simpler, cruder, but arguably more conceptually consistent.
-def simpfilt(ExtrIm):
-    LabVol = np.zeros(ExtrIm.shape)
-    StComIm = np.zeros(ExtrIm.shape)
-    maxCom = ExtrIm.shape[1:3]
-    maxComLev = 0
-    maxComSz = 0
-    #find the largest component
-    for w in range(35):
-        Sli = ExtrIm[w]
-        LabVol[w],tra = ndimage.measurements.label(Sli,structure=np.ones((3,3)))
-        FlLab = np.ravel(LabVol[w])
-        FlLab = FlLab[np.nonzero(FlLab)]
-        if FlLab.size > 0:
-            u, indices = np.unique(FlLab, return_inverse=True)
-            BigComSz = np.amax(np.bincount(indices))
-            BigComSzLoc = np.argmax(np.bincount(indices))
-            BigComLab = u[BigComSzLoc]
-            if BigComSz > maxComSz:
-                maxCom = BigComLab
-                maxComSz = BigComSz
-                maxComLev = w
-    StComIm[maxComLev] = LabVol[maxComLev] * (LabVol[maxComLev] == maxCom)
+def animate(frame):
+    """
+    Animation function. Takes the current frame number (to select the potion of
+    data to plot) and a line object to update.
+    """
 
-    #now build up a volume working down and then back up from the level
-    #where the largest component lives
-    CurLab = LabVol[maxComLev] * (LabVol[maxComLev] == maxCom)
-    CurXY = np.flatnonzero(CurLab)
-    for x in range(maxComLev-1,-1,-1):
-        PaStLab = LabVol[x]
-        #if image below is empty break
-        if np.flatnonzero(PaStLab).size == 0: 
-            break
-        PaStXY = np.flatnonzero(PaStLab)
-        tra, tra, InterLocs = np.intersect1d(CurXY,PaStXY,return_indices=True)
-        OvLapLabs = np.unique(np.ravel(PaStLab)[PaStXY[InterLocs]])
-        #hook each label up to the largest of these
-        HookLabSize = 0
-        HookLab = 0
-        #go ahead and break if there is no component below
-        if OvLapLabs.size == 0:
-            break
-        for m in range(OvLapLabs.size):
-            OvlabIm = PaStLab * (PaStLab == OvLapLabs[m])
-            OvlabComSz = np.flatnonzero(OvlabIm).size
-            if OvlabComSz > HookLabSize:
-                HookLabSize = OvlabComSz
-                HookLab = OvLapLabs[m]
+    # Not strictly neccessary, just so we know we are stealing these from
+    # the global scope
+    global all_data, image
 
-        StComIm[x] = PaStLab * (PaStLab == HookLab)
-        CurLab = StComIm[x]
-        CurXY = np.flatnonzero(CurLab)
+    # We want up-to and _including_ the frame'th element
+    image.set_array(all_data[frame])
 
-    #now work your way up
-    CurLab = LabVol[maxComLev] * (LabVol[maxComLev] == maxCom)
-    CurXY = np.flatnonzero(CurLab)
-    for y in range(maxComLev+1,35):
-        FuStLab = LabVol[y]
-        #if image above is empty break
-        if np.flatnonzero(FuStLab).size == 0: 
-            break
-        FuStXY = np.flatnonzero(FuStLab)
-        tra, tra, InterLocs = np.intersect1d(CurXY,FuStXY,return_indices=True)
-        OvLapLabs = np.unique(np.ravel(FuStLab)[FuStXY[InterLocs]])
-        #hook each label up to the largest of these
-        HookLabSize = 0
-        HookLab = 0
-        #go ahead and break if there is no component above
-        if OvLapLabs.size == 0:
-            break
-        for m in range(OvLapLabs.size):
-            OvlabIm = FuStLab * (FuStLab == OvLapLabs[m])
-            OvlabComSz = np.flatnonzero(OvlabIm).size
-            if OvlabComSz > HookLabSize:
-                HookLabSize = OvlabComSz
-                HookLab = OvLapLabs[m]
-
-        StComIm[y] = FuStLab * (FuStLab == HookLab)
-        CurLab = StComIm[y]
-        CurXY = np.flatnonzero(CurLab)
-
-    return StComIm
-
-
-def comfilt(ExtrIm):
-    
-    #for every level, the list of labels that have already been tied
-    LabLst = [[] for i in range(35)]
-    AllVolLabs = []
-    for x in range(34):
-        #print(x)
-        TStIm = ExtrIm[x]
-        TStLab,tra = ndimage.measurements.label(TStIm,structure=np.ones((3,3)))
-        labels = np.unique(TStLab[np.where(TStLab)])
-        #now go through each label and find the largest component that connects to it 
-        #in the next year. For each label follow this link all the way up the stack
-        for y in range(labels.size):
-            CurLevUsedLabs = np.asarray(LabLst[x])
-            #if label has been processed previously don't analyze it
-            if np.isin(labels[y], CurLevUsedLabs):
-                continue
-            VolLabs = []  
-            labIm = TStLab * (TStLab == labels[y])
-            labImXY = np.flatnonzero(labIm)
-            
-            #now tie the current label all the way up the stack
-            for w in range(x+1,35):
-                FuTStIm = ExtrIm[w]
-                FuTStLab,tra = ndimage.measurements.label(FuTStIm,structure=np.ones((3,3)))
-                FuTStXY = np.flatnonzero(FuTStLab)
-                tra, tra, InterLocs = np.intersect1d(labImXY,FuTStXY,return_indices=True)
-                OvLapLabs = np.unique(np.ravel(FuTStLab)[FuTStXY[InterLocs]])
-                #hook each label up to the largest of these
-                HookLabSize = 0
-                HookLab = 0
-                #go ahead and break if there is no component above
-                if OvLapLabs.size == 0:
-                    break
-                for m in range(OvLapLabs.size):
-                    OvlabIm = FuTStLab * (FuTStLab == OvLapLabs[m])
-                    OvlabComSz = np.flatnonzero(OvlabIm).size
-                    if OvlabComSz > HookLabSize:
-                        HookLabSize = OvlabComSz
-                        HookLab = OvLapLabs[m]
-                #tie future component to current component
-                if HookLab != 0:                    
-                    if w == x+1:
-                        LabLst[x].append(labels[y])
-                        #add a unique level based identifier 
-                        VolLabs.append(labels[y]+(100000*x))
-                    LabLst[w].append(HookLab)
-                    #add a unique level based identifier
-                    VolLabs.append(HookLab+(100000*w))
-                    #reset labIm one level up
-                    labIm = FuTStLab * (FuTStLab == HookLab)
-                    labImXY = np.flatnonzero(labIm)
-            AllVolLabs.append(VolLabs)
-    #now combine components that share labels 
-    didMer = 1
-    while didMer == 1:
-        MerSw = 0
-        for x in range(len(AllVolLabs)):
-            CurVolLabs = AllVolLabs[x].copy()
-            AllVolLabs[x] = []
-            #now flatten the list of all components to check if merger happens
-            FlAllVolLabs = np.concatenate(AllVolLabs)
-            intLabs,tra,MerVolInds = np.intersect1d(CurVolLabs,FlAllVolLabs,return_indices=True)
-
-            if intLabs.size > 0:
-                MerSw = 1
-                MerFiInd = MerVolInds[0]
-                VolLabLens = list(map(len,AllVolLabs))
-                VolLabLstEnLocs = np.cumsum(VolLabLens) - 1                         
-                MerLstInd = np.where(MerFiInd <= VolLabLstEnLocs)[0][0]
-                #need to append labels you've added to merged volume as well 
-                AllVolLabs[MerLstInd].extend(CurVolLabs.copy())
-                AllVolLabs[MerLstInd] = np.unique(AllVolLabs[MerLstInd]).tolist()
-            else:
-                AllVolLabs[x] = CurVolLabs
-        #if no mergers happened break        
-        if MerSw == 0:
-            break
-  
-    #now build up the largest merged component
-    if np.asarray(list(map(len,AllVolLabs))).size > 0:
-        FiltComLabs = AllVolLabs[np.argmax(list(map(len,AllVolLabs)))]
-        
-    else:
-        StComIm = np.zeros(ExtrIm.shape)
-        return StComIm
-        
-    StComIm = np.zeros(ExtrIm.shape)
-    for x in range(len(FiltComLabs)):
-        #set_trace()
-        curLab = FiltComLabs[x]
-        #find out what level the label is on
-        Lev = np.floor(curLab/100000).astype(int)
-        LevLab = curLab - (Lev*100000)
-        #now get the labels at this level
-        LevAllLabs,tra = ndimage.measurements.label(ExtrIm[Lev],structure=np.ones((3,3)))
-        LevLabIm = LevAllLabs * (LevAllLabs == LevLab)
-        LabLocs = np.nonzero(LevLabIm)
-        StComIm[Lev][LabLocs] = 1
-    return StComIm
+    return image
    
 
 def getpoints(im):
@@ -298,7 +127,59 @@ def YearBinarize(im):
     im[im == 3] = 1
     return im
 
+def GetSubWins(WinShape,strideparams)
+    Win = np.ones(WinShape).astype(int)
+    FlatIn = np.cumsum(Win)
+    FlatIn = np.subtract(FlatIn,1)
+    Win = np.reshape(FlatIn,WinShape)
 
+    ##Stride params
+    xstep = int(strideparams[0])
+    ystep = int(strideparams[0])
+    xsize = int(strideparams[1])
+    ysize = int(strideparams[1])
+
+    SubWins = np.lib.stride_tricks.as_strided(Win,(int((Win.shape[0] - xsize + 1) / xstep), int((Win.shape[1] - ysize + 1) / ystep), xsize, ysize),(Win.strides[0] * xstep, Win.strides[1] * ystep, Win.strides[0], Win.strides[1]))
+    
+    return Subwins
+
+#takes a subim and extracts the primary region from it
+def GetReg(SubIm,SubMask):
+    #SubIm = avulHPC.YearBinarize(SubIm)
+    #get the biggest connected components in the image
+    labels_out,tra = ndimage.measurements.label(SubIm,structure=np.ones((3,3,3)))
+    #clear SubIm and recast labels_out to save space when doing this for bigger images
+    SubIm = []
+    labels_out = labels_out.astype('uint16')
+    FlLab = np.ravel(labels_out)
+    FlLab = FlLab[np.nonzero(FlLab)]
+    finComIm = np.zeros((labels_out.shape))
+    FlLab = np.ravel(labels_out)
+    FlLab = FlLab[np.nonzero(FlLab)]
+    u, indices = np.unique(FlLab, return_inverse=True)
+    #select labels that are bigger than 10000 elements
+    #set_trace()
+    BigComLabs = u[np.nonzero(np.bincount(indices)>30000)]
+    indices = [] #clear indices to save space again
+    #print("number of labels")
+    #print(BigComLabs.size)
+    #now go through and mask out components that don't have a pixel overlapping with mask
+    for x in range(BigComLabs.size):
+        ComIm = labels_out * (labels_out == BigComLabs[x])
+        ComIm = ComIm.astype('uint8')
+        #flatten along time
+        allRed = skimage.measure.block_reduce(ComIm,(35,1,1),np.max)
+        maskIm = SubMask * allRed
+        #if a pixel overlaps and this is a fluvial component then keep
+        #TODO: CHANGE this and the component selection in the main analysis code to keep ALL the fluvial
+        #components in a section not just the biggest.
+        if (np.max(maskIm) > 0):
+            finComIm = np.logical_or(ComIm,finComIm) 
+    #if there is nothing in finComIm then keep as an all zero array
+    if np.any(finComIm):
+        #change the nonzero pixels in ComIm to 1 to get active areas
+        finComIm[finComIm == np.max(finComIm)] = 1
+    return finComIm
 
 #### balltree code + endpoint tree query ####
 
