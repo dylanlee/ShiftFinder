@@ -36,3 +36,9 @@ Code was created using the following versions of python and main libraries:
 - numba 0.53.1
 - skimage 0.18.1
 - sklearn 0.24.1
+
+## Computational requirements
+
+To run the analysis on the full test region presented in the paper requires a computer with >32 gb of memory.
+
+"CreateOnDiskDataset.ipynb" and "RunTiles.ipynb" can be run with a small test area as a way to demonstrate the method on computers with 8-16 gb of memory. "RunTestSuite.ipynb" and "FindMaskedOutAvulsions.ipynb" can be run on a computer with 16 gb of memory.
