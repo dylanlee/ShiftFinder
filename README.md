@@ -14,7 +14,7 @@ The data files necessary to run the analysis as presented in the paper can be fo
 
 Each of these notebooks cells are commented and there is also some documentation in each notebook to provide a broader overview of what individual cells are doing. 
 
-## Other analysis
+## Other analysis and code
 
 Avul.py is a python module that contains all the custom helper functions associated with the method itself. This includes the main function to compute the A_i value for a given region of interest.
 
