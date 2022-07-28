@@ -127,7 +127,7 @@ def YearBinarize(im):
     im[im == 3] = 1
     return im
 
-def GetSubWins(WinShape,strideparams)
+def GetSubWins(WinShape,strideparams):
     Win = np.ones(WinShape).astype(int)
     FlatIn = np.cumsum(Win)
     FlatIn = np.subtract(FlatIn,1)
@@ -141,7 +141,7 @@ def GetSubWins(WinShape,strideparams)
 
     SubWins = np.lib.stride_tricks.as_strided(Win,(int((Win.shape[0] - xsize + 1) / xstep), int((Win.shape[1] - ysize + 1) / ystep), xsize, ysize),(Win.strides[0] * xstep, Win.strides[1] * ystep, Win.strides[0], Win.strides[1]))
     
-    return Subwins
+    return SubWins
 
 #takes a subim and extracts the primary region from it
 def GetReg(SubIm,SubMask):
