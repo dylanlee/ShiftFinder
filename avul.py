@@ -98,22 +98,7 @@ def stbsteps(points,StabCrit):
         seaR = 0
     return numActLevels, seaR, ActLevels
     
-    
-def animate(frame):
-    """
-    Animation function. Takes the current frame number (to select the potion of
-    data to plot) and a line object to update.
-    """
 
-    # Not strictly neccessary, just so we know we are stealing these from
-    # the global scope
-    global all_data, image
-
-    # We want up-to and _including_ the frame'th element
-    image.set_array(all_data[frame])
-
-    return image
-   
 
 def getpoints(im):
     WaterLoc = np.nonzero(im)
@@ -170,9 +155,7 @@ def GetReg(SubIm,SubMask):
         #flatten along time
         allRed = skimage.measure.block_reduce(ComIm,(35,1,1),np.max)
         maskIm = SubMask * allRed
-        #if a pixel overlaps and this is a fluvial component then keep
-        #TODO: CHANGE this and the component selection in the main analysis code to keep ALL the fluvial
-        #components in a section not just the biggest.
+        #if a pixel overlaps and this is a fluvial component then keep.
         if (np.max(maskIm) > 0):
             finComIm = np.logical_or(ComIm,finComIm) 
     #if there is nothing in finComIm then keep as an all zero array
