@@ -12,7 +12,7 @@ The data files necessary to run the analysis as presented in the paper can be fo
 
 "VizResults.ipynb" uses the A_i map created in "RunTiles.ipynb" to produce most of the rest of the results presented in the paper.
 
-Each of these notebooks cells are commented and there is also some documentation in each notebook to provide a broader overview of what individual cells are doing. 
+Each of these notebooks cells are commented and there is also some documentation in each notebook to provide a broader overview of what individual cells are doing. "CreateOnDiskDataset.ipynb" and "RunTiles.ipynb" can be run with a small test area as a way to demonstrate the method.
 
 ## Other analysis and code
 
@@ -21,6 +21,8 @@ Avul.py is a python module that contains all the custom helper functions associa
 "RunTestSuite.ipynb" loads the data in the folder "TestCases" and computes the A_i value for each of the nine test cases shown in figure 7.
 
 "FindMaskedOutAvulsions.ipynb" compares the results of the method and the masking procedure used in the paper to avulsions that were previously found in the study area by hand.
+
+"loadregionandmask.py" is a helper script that loads in the study area/small test area for the "RunTiles.ipynb" and "VizResults.ipynb" notebooks.
 
 ## Library versions
 
