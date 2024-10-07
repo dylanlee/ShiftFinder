@@ -1,2 +1,6 @@
-#ignore deepriver code
 deepriver/
+__pycache__/
+.venv/
+data/
+.ipynb_checkpoints/
+shiftenv/

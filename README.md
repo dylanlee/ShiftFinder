@@ -18,7 +18,7 @@ Each of these notebooks cells are commented and there is also some documentation
 
 Avul.py is a python module that contains all the custom helper functions associated with the method itself. This includes the main function to compute the A_i value for a given region of interest.
 
-"RunTestSuite.ipynb" loads the data in the folder "TestCases" and computes the A_i value for each of the nine test cases shown in figure 7.
+"RunTestSuite.ipynb" loads the data in the folder "TestCases" and computes the A_i value for each of the nine test cases in the test suite. Some of these test cases correspond to what is shown in Figure 7 of the paper.  "Avulsion1YearlyNonGeoCr.tif" is displayed in figure 7F of the paper. "Avulsion3YearlyNonGeoCr.tif" is displayed in figure 7G of the paper. "Avulsion4YearlyNonGeoCr.tif" is displayed in figure 7H of the paper. "BraidedControlYearlyNonGeoCr.tif" is displayed in figure 7E of the paper. The other panels in figure 7 were replaced in the test suite with other control images obtained from actual water surface observations that are labeled "Control" in the test data title. With the exception of the "CutOffControlYearlyNonGeoCr.tif" file they should give an Ai value of one.
 
 "FindMaskedOutAvulsions.ipynb" compares the results of the method and the masking procedure used in the paper to avulsions that were previously found in the study area by hand.
 
@@ -26,18 +26,14 @@ Avul.py is a python module that contains all the custom helper functions associa
 
 ## Library versions
 
-Code was created using the following versions of python and main libraries:
-
-- Python 3.8.8
-- Numpy 1.20.1
-- Rasterio 1.3.0
-- Dask 2021.04.0
-- Scipy 1.6.2
-- Matplotlib 3.3.3
-- h5py 2.10.0
-- numba 0.53.1
-- skimage 0.18.1
-- sklearn 0.24.1
+Results produced by the code were produced with the packages and versions specified on the "requirements.txt" file. Use python 3.7 - python 3.8 to create a venv to install these specific versions in. Create and install a venv for working with the code by navigating to your local copy of the ShiftFinder directory nad running:
+ 
+```
+python3.7 -m venv shiftenv
+source shiftenv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
 
 ## Computational requirements
 
